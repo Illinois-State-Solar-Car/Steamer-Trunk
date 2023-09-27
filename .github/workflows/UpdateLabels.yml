@@ -54,6 +54,22 @@ jobs:
             elif [[ "${{ github.event.project_card.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.project_card.column_name }}" == "Open" ]]; then
               labels=("Open" "Mechanical")
             fi
+          elif [[ "${{ github.event_name }}" == "issues" ]]; then
+            # Check and update for the 'In Progress' column
+            if [[ "${{ github.event.issue.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.issue.column_name }}" == "In Progress" ]]; then
+              labels=("In Progress" "Mechanical")
+            # Check and update for the 'Review' column
+            elif [[ "${{ github.event.issue.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.issue.column_name }}" == "Review" ]]; then
+              labels=("Review" "Mechanical")
+            # Check and update for the 'Closed' column; will also close the issue
+            elif [[ "${{ github.event.issue.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.issue.column_name }}" == "Closed" ]]; then
+              labels=("Closed" "Mechanical")
+              # Close the issue
+              curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"state\":\"closed\"}" "https://api.github.com/repos/${{ github.repository }}/issues/${issue_number}"
+            # Check for issues moved back to 'Open' and update their labels
+            elif [[ "${{ github.event.issue.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.issue.column_name }}" == "Open" ]]; then
+              labels=("Open" "Mechanical")
+            fi
           fi
 
           # Add or remove labels as needed
