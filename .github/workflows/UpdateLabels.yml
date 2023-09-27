@@ -1,10 +1,10 @@
 name: Update Labels on Issue Move
 
 on:
-  issues:
+  project_card:
     types:
       - moved
-  project_card:
+  issues:
     types:
       - moved
 
@@ -23,7 +23,7 @@ jobs:
             echo "No action needed. Exiting..."
             exit 0
           fi
-          echo "Issue moved within the project board. Proceeding..."
+          echo "Issue moved within the Steamer Trunk Project Board. Proceeding..."
         shell: bash
 
       - name: Get issue number
@@ -37,21 +37,21 @@ jobs:
           # Get the current labels from the issue
           current_labels=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/issues/${issue_number}/labels" | jq -r '.[].name')
 
-          # Check to find if the issue was moved
+          # Check to find if the issue was moved within the Steamer Trunk Project Board
           if [[ "${{ github.event_name }}" == "project_card" ]]; then
             # Check and update for the 'In Progress' column
-            if [[ "${{ github.event.project_card.column_name }}" == "In Progress" ]]; then
+            if [[ "${{ github.event.project_card.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.project_card.column_name }}" == "In Progress" ]]; then
               labels=("In Progress" "Mechanical")
             # Check and update for the 'Review' column
-            elif [[ "${{ github.event.project_card.column_name }}" == "Review" ]]; then
+            elif [[ "${{ github.event.project_card.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.project_card.column_name }}" == "Review" ]]; then
               labels=("Review" "Mechanical")
             # Check and update for the 'Closed' column; will also close the issue
-            elif [[ "${{ github.event.project_card.column_name }}" == "Closed" ]]; then
+            elif [[ "${{ github.event.project_card.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.project_card.column_name }}" == "Closed" ]]; then
               labels=("Closed" "Mechanical")
               # Close the issue
               curl -X PATCH -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"state\":\"closed\"}" "https://api.github.com/repos/${{ github.repository }}/issues/${issue_number}"
             # Check for issues moved back to 'Open' and update their labels
-            elif [[ "${{ github.event.project_card.column_name }}" == "Open" ]]; then
+            elif [[ "${{ github.event.project_card.project_name }}" == "Steamer Trunk Project Board" && "${{ github.event.project_card.column_name }}" == "Open" ]]; then
               labels=("Open" "Mechanical")
             fi
           fi
